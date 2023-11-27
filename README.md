@@ -190,116 +190,11 @@ Pots fer la comparació fent ús i sense ús de `React.lazy` i `Suspense` per ve
 
 Amb **Props Drilling** ens referim a la situació en la que un component necessita passar una prop a un altre component que no té res a veure amb ell. Això pot ser un problema quan tenim molts components anidats i necessitem passar una prop a un component molt llunyà.
 
-Anem a veure si podem fer algunes millores en la nostra aplicació sense necessitat de fer ús de **React Context** ara per ara. 
+Més endavant tornarem a aquesta aplicació per mirar de solucionar aquests problemes de **Props Drilling** sense necessitat encara d'haver vist **React Context**. 
 
-Modificarem el projecte per mirar de passar el programa directament a la llista d'estudiants sense necessitat de que s'origini al component `Form`. Anem a modificar el codi d'aquests tres components en tres passos:
+De moment ho deixem aquí i anem a continuar amb una nova aplicació. 
 
-### 1. App.jsx
 
-Evitarem passar la informació rleativa al tipus d'estudiant i les places disponibles a través del `Form`. 
-
-```jsx
-  <Form
-        setDetallsEstudiant={setDetallsEstudiant}
-        handleItemSelection={handleItemSelection}
-        setIsRestorePlaces={setIsRestorePlaces}
-      />
-```
-
-Abans estàvem passant fins a 7 props al `Form` i ara només en passarem 3. Recordem que feien aquestes funcions:
-
-- `setDetallsEstudiant`: guarda les dades introduïdes al formulari a la variable d'estat `detallsEstudiant` de l'`App.jsx`.
-- `handleItemSelection`: guarda la ID de l'estudiant i l'acció a realitzar en les variables d'estat corresponents (`selectedItemId` i `action`) de l'`App.jsx`.
-
-Abans teníem aquí també les variables i funcions corresponents amb el tipus d'estudiant, les places i les seves funcions de modificació. Ara ho farem directament a la llista d'estudiants. Afegim-ho:
-
-```jsx
- <StudentList
-          detallsEstudiant={detallsEstudiant}
-          setDetallsEstudiant={setDetallsEstudiant}
-          action={action}
-          setAction={setAction}
-          selectedItemId={selectedItemId}
-          restaurarPlaces={restaurarPlaces}
-          setPlacesDisponibles={setPlacesDisponibles}
-          updatedPlaces={tipusEstudiant === 'PostGrau' ? gPlaces : ngPlaces}
-          tipusEstudiant={tipusEstudiant}
-          setSelectedProgram={setSelectedProgram}
-        />
-```
-
-### 2. Form.jsx
-
-Hem de desfer-nos de tota referència al tipus d'estudiant i les places disponibles. A més, quan l'usuari faci click al botó d'actualitzar, hem de passar l'ID de l'estudiant i l'acció a l'`App.jsx`. 
-
-Identifiquem la nostra funció `handleEdit` i modifiquem el codi:
-
-```jsx
-  const handleEdit = (studentID) => {
-    handleInputReset(firstName, lastName, email);
-    setStudentID(studentID);
-    setBtnValue('Actualitzar');
-    props.handleItemSelection('edit', studentID);
-  };
-```
-
-Hem eliminat el paràmetre `program` ja que no el necessitem. A més, hem canviat la funció `props.setSelectedProgram(program)` per `props.handleItemSelection('edit', studentID)` de manera similar a com ho havíem fet pel cas de `handleDelete`. Cada cop que editem, es llançarà aquesta funció que actualitzarà les variables d'estat `selectedItemId` i `action` de l'`App.jsx`. I aquestes variables ja les hem passat com a props al `StudentList`.
-
-Següent funció, la de `handleClick`:
-
-```jsx
- const handleClick = (event) => {
-    handleInputReset('', '', '');
- 
-    // Generació d'un ID per l'estudiant - 4digit
-    const randomKey = Math.floor(1000 + Math.random() * 9000);
-
-    // Si estem fent una inscripció, generem un ID nou, sino assignem l'ID de l'estudiant
-    const id = btnValue === 'Inscripció' ? randomKey : studentID;
-    if (btnValue !== 'Inscripció') {
-      props.setIsRestorePlaces(false);
-    }
-    props.setDetallsEstudiant({
-      key: id,
-      fname: firstName,
-      lname: lastName,
-      program: props.tipusEstudiantSelect,
-      email: email,
-      edit: (
-        <MdEdit
-          className="text-3xl text-blue-500 hover:text-red-500"
-          onClick={() => handleEdit(id)}
-        />
-      ),
-      delete: (
-        <MdDelete
-          className="text-3xl text-blue-500 hover:text-red-500"
-          onClick={() => props.handleItemSelection('delete', id)}
-        />
-      ),
-    });
-    setBtnValue('Inscripció');
-    event.preventDefault(); // Necessari per evitar que el form es refresqui
-  };
-```
-Únicament la part de codi on  actualitzàvem les places actuals amb `props.setPlacesDisponibles(props.placesActuals - 1)` ha canviat. Ara ho farem a la llista d'estudiants. I també podem prescindir del paràmetre per passar el tipus d'estudiant o program al callback de `handleEdit`. 
-
-### 3. StudentList.jsx
-
-Ara haurem de fer les modificacions relatives al tipus d'estudiant i les places disponibles al component `StudentList`.
-
-Comencem amb dues modificacions clares que hem d'afegir al nostre `useEffect`. Al final d'aquest hauríem d'afegir:
-
-```jsx
-    props.detallsEstudiant.program = props.tipusEstudiant;
-    props.setPlacesDisponibles(props.updatedPlaces);
-```
-
-La primera línia farà que el tipus d'estudiant/programa s'actualitzi correctament en funció del que tenim seleccionat al formulari. Ja no és el `Form` l'encarregat de passar aquesta informació. Ho fem tot d'acord amb l'element seleccionat a través del `RadioGroup` del `App.jsx`.
-
-A la segona línia actualitzarem el nombre de places disponibles en funció del tipus d'estudiant seleccionat. Això ho fem a través de la funció `setPlacesDisponibles` que hem passat com a prop al `StudentList` i que hem definit a l'`App.jsx`. Això ho feiem abans al `Form` a través de la funció que es disparava amb el botó. 
-
-Ara per ara hauria de funcionar la opció de borrar. Prova a veure si tot ok. 
 
 
 
