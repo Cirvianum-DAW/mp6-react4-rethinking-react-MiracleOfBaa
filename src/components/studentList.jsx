@@ -9,7 +9,7 @@ const StudentList = (props) => {
       const newItems = items.filter((item) => {
         console.log(item.key, props.selectedItemId);
         if (item.key === props.selectedItemId) {
-          // restaurem les places disponisbles (+1)
+          // restaurem les places disponisbles  (+1)
           props.restaurarPlaces(item.program);
           return false;
         } else {
